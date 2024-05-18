@@ -18,23 +18,24 @@ async function main(){
     await token.deployed();
     console.log("\x1b[38;5;117m", `\n Token deployed to:`, "\x1b[32m", `     ${token.address}`);
     
-    // Crowdsale deployment code goes here
-    const Crowdsale = await hre.ethers.getContractFactory('Crowdsale');
-    const crowdsale = await Crowdsale.deploy(token.address, PRICE, hre.ethers.utils.parseUnits(MAX_SUPPLY, 'ether'));
-    await crowdsale.deployed();
-    console.log("\x1b[38;5;117m", `Crowdsale deployed to:`, "\x1b[32m", ` ${crowdsale.address}`);
-
     // Deploy DAO contract
     const DAO = await hre.ethers.getContractFactory('DAO');
     const dao = await DAO.deploy(token.address, '500000000000000000000001');
     await dao.deployed();
-    console.log("\x1b[38;5;117m", `DAO deployed to:`, "\x1b[32m", `       ${token.address}\n`);
+    console.log("\x1b[38;5;117m", `DAO deployed to:`, "\x1b[32m", `       ${dao.address}`);
+
+    // Crowdsale deployment code goes here
+    const Crowdsale = await hre.ethers.getContractFactory('Crowdsale');
+    const crowdsale = await Crowdsale.deploy(token.address, PRICE, hre.ethers.utils.parseUnits(MAX_SUPPLY, 'ether'));
+    await crowdsale.deployed();
+    console.log("\x1b[38;5;117m", `Crowdsale deployed to:`, "\x1b[32m", ` ${crowdsale.address}\n`);
+
 
     // Send tokens to crowdsale contract address
-    const transaction = await token.transfer(crowdsale.address, hre.ethers.utils.parseUnits(MAX_SUPPLY, 'ether'));
-    await transaction.wait();
-    console.log("\x1b[38;5;117m",`Deployments successful! Tokens have been transferred to the Crowdsale contract.`);  
-    console.log("\x1b[38;5;117m",`Crowdsale Contract Balance is: ${ hre.ethers.utils.formatUnits(await token.balanceOf(crowdsale.address), 'ether')}`);
+    // const transaction = await token.transfer(crowdsale.address, hre.ethers.utils.parseUnits(MAX_SUPPLY, 'ether'));
+    // await transaction.wait();
+    // console.log("\x1b[38;5;117m",`Deployments successful! Tokens have been transferred to the Crowdsale contract.`);  
+    // console.log("\x1b[38;5;117m",`Crowdsale Contract Balance is: ${ hre.ethers.utils.formatUnits(await token.balanceOf(crowdsale.address), 'ether')}`);
 
 
 
