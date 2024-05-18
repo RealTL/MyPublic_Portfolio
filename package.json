@@ -1,5 +1,5 @@
 {
-  "name": "crowdsale",
+  "name": "dao",
   "version": "1.0.0",
   "description": "",
   "dependencies": {
@@ -19,7 +19,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "author": "ads@houseoflowes.com",
+  "author": "RealTL",
   "license": "ISC",
   "eslintConfig": {
     "extends": [
