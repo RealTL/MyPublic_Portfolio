@@ -102,8 +102,7 @@ describe('DAO', () => {
             it('rejects a non-investor', async () => { // user is a non-token holder and thus should fail
                 await expect(dao.connect(user).createProposal('Proposal 1', ether(100), recipient.address)).to.be.reverted;
             });
-
-
+            
         });
 
     });
