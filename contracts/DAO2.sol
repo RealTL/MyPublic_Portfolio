@@ -1,17 +1,16 @@
-//SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 import "./Token.sol";
 
-
-contract DAO {
+contract DAO2 {
     address owner;
     Token public token;
     uint256 public quorum;
     uint256 public proposalCount; 
 
-    struct Proposal{
+    struct Proposal {
         uint256 id;
         string name; 
         uint256 amount; 
@@ -33,46 +32,37 @@ contract DAO {
         quorum = _quorum;
     }
 
-    // Allow contract to receive ether
-    receive() external payable {}
-
     modifier onlyInvestor() {
-        require(token.balanceOf(msg.sender) > 0, 
-        "Must be a token holder.");
+        require(token.balanceOf(msg.sender) > 0, "Must be a token holder.");
         _;
     }
 
     function createProposal(string memory _name, 
-                            uint256 _amount, 
-                            address payable _recipient
-                           ) external onlyInvestor {
-        require(address(this).balance >= _amount); 
-        
+    			    uint256 _amount, 
+    			    address payable _recipient
+			    ) external onlyInvestor {
+        require(token.balanceOf(address(this)) >= _amount, "Not enough tokens in DAO"); 
 
         proposalCount++;
-        proposals[proposalCount] = Proposal(
-                                            proposalCount, 
-                                            _name, 
-                                            _amount, 
-                                            _recipient, 
-                                            0, 
-                                            false);
-                                            
+        proposals[proposalCount] = Proposal(proposalCount, 
+					    _name, 
+					    _amount, 
+					    _recipient, 
+					    0, 
+					    false);
+
         emit Propose(proposalCount, _amount, _recipient, msg.sender);
     }
 
     // Vote on a proposal
     function vote(uint256 _id) external onlyInvestor {
+        require(votes[msg.sender][_id] == false, "Voter has already voted");
         // Get the proposal from mapping by id
         Proposal storage proposal = proposals[_id];
-        // Don't let investors vote twice
-        require(votes[msg.sender][_id] == false, "voter has already voted");
-
         // Update votes
         proposal.votes += token.balanceOf(msg.sender);
-        // OR proposal.votes += token.balanceOf(msg.sender);
-        // Track that the user has voted
         votes[msg.sender][_id] = true;
+
         emit Vote(_id, msg.sender);
     }
 
@@ -80,24 +70,19 @@ contract DAO {
     function finalizeProposal(uint256 _id) external onlyInvestor {
         // Get the Proposal from mapping by id
         Proposal storage proposal = proposals[_id];
-
         // Ensure proposal is not already finalized
-        require(proposal.finalized == false, "proposal already finalized.");
-
+        require(proposal.finalized == false, "Proposal already finalized");
+        // Check that the proposal has enough votes
+        require(proposal.votes >= quorum, "Must reach quorum to finalize proposal");
+        // Check that the contract has enough of the ERC20 tokens
+        require(token.balanceOf(address(this)) >= proposal.amount, "Not enough tokens in DAO");
+        
         // Mark the proposal as finalized
         proposal.finalized = true;
 
-        // Check that the proposal has enough votes
-        require(proposal.votes >= quorum, "must reach quorum to finalize proposal");
-
-        // Check that the contract has enough ETH
-        require(address(this).balance >= proposal.amount);
-
         // Transfer the funds
-        (bool sent, ) = proposal.recipient.call{ value: proposal.amount }("");
-        require(sent);
+        require(token.transfer(proposal.recipient, proposal.amount), "Token transfer failed");
 
-        // Emit finalize event
         emit Finalize(_id);
     }
 }
